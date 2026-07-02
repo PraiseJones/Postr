@@ -12,18 +12,19 @@ import { formatDate } from "@/lib/utils";
 export default async function DashboardPage() {
   const supabase = createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session!.user;
 
   const [{ data: accounts }, { data: posts }] = await Promise.all([
     supabase
       .from("connected_accounts")
       .select("platform, account_name")
-      .eq("user_id", user!.id),
+      .eq("user_id", user.id),
     supabase
       .from("posts")
       .select("id, content, created_at, post_results(platform, status)")
-      .eq("user_id", user!.id)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(5),
   ]);

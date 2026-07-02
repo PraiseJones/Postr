@@ -17,15 +17,16 @@ export default async function PostDetailPage({
 }) {
   const supabase = createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session!.user;
 
   const { data: post } = await supabase
     .from("posts")
     .select(
       "id, content, media_url, created_at, post_results(id, platform, status, error_message, platform_post_id, posted_at)"
     )
-    .eq("user_id", user!.id)
+    .eq("user_id", user.id)
     .eq("id", params.id)
     .single();
 

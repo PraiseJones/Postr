@@ -18,8 +18,9 @@ function isConfigured(env: string) {
 export default async function SettingsPage() {
   const supabase = createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session!.user;
 
   return (
     <FadeIn className="space-y-6">
@@ -35,11 +36,11 @@ export default async function SettingsPage() {
         <dl className="mt-4 space-y-3 text-sm">
           <div className="flex justify-between border-b border-white/5 pb-3">
             <dt className="text-white/55">Email</dt>
-            <dd>{user!.email}</dd>
+            <dd>{user.email}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-white/55">Member since</dt>
-            <dd>{formatDate(user!.created_at)}</dd>
+            <dd>{formatDate(user.created_at)}</dd>
           </div>
         </dl>
       </Card>
