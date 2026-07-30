@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import InstallButton from "@/components/install-button";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -60,7 +61,8 @@ export default function Sidebar({ email }: { email: string }) {
         })}
       </nav>
 
-      <div className="border-t border-white/10 p-4">
+      <div className="space-y-3 border-t border-white/10 p-4">
+        <InstallButton />
         <p className="truncate px-2 text-xs text-white/55">{email}</p>
         <button
           onClick={signOut}
