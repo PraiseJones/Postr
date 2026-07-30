@@ -28,9 +28,11 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(8px)" },
           to: { opacity: "1", transform: "none" },
         },
+        // Four identical copies shift by exactly one copy (25%), so the
+        // loop restarts on an identical frame with no gap on wide screens.
         marquee: {
           from: { transform: "translateX(0)" },
-          to: { transform: "translateX(-50%)" },
+          to: { transform: "translateX(-25%)" },
         },
         aurora: {
           "0%": { transform: "translate(-10%, -5%) scale(1)" },
