@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#050505" />
+    <title>Offline — Postr</title>
+    <style>
+      :root {
+        --onyx: #050505;
+        --primary: #534ab7;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: var(--onyx);
+        color: #fff;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          sans-serif;
+        text-align: center;
+      }
+      .wrap { max-width: 20rem; }
+      svg { color: var(--primary); }
+      h1 {
+        margin: 24px 0 8px;
+        font-family: ui-serif, Georgia, serif;
+        font-weight: 400;
+        font-size: 2rem;
+        letter-spacing: -0.01em;
+      }
+      p {
+        margin: 0;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.55);
+      }
+      button {
+        margin-top: 32px;
+        padding: 12px 32px;
+        border: 0;
+        border-radius: 8px;
+        background: var(--primary);
+        color: #fff;
+        font: inherit;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      button:hover { background: #6157cf; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <svg
+        width="40"
+        height="40"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.172a6 6 0 0 0-8.49-8.49L5.586 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z"
+        />
+        <path d="M16 8 2 22" />
+        <path d="M17.5 15H9" />
+      </svg>
+      <h1>No connection</h1>
+      <p>
+        Postr needs the network to publish your posts. Check your data or
+        Wi-Fi and try again — nothing you typed is lost.
+      </p>
+      <button onclick="location.reload()">Try again</button>
+    </div>
+  </body>
+</html>
