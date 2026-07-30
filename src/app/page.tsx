@@ -82,8 +82,12 @@ function Marquee() {
     "EVERY CUSTOMER",
     "✦",
   ];
-  const row = (key: string) => (
-    <div key={key} className="flex shrink-0 items-center gap-8 pr-8">
+  const row = (key: string, index: number) => (
+    <div
+      key={key}
+      aria-hidden={index > 0}
+      className="flex shrink-0 items-center gap-8 pr-8"
+    >
       {items.map((item, i) => (
         <span
           key={i}
@@ -97,9 +101,17 @@ function Marquee() {
   return (
     <div className="relative overflow-hidden border-y border-white/5 py-4">
       <div className="flex w-max animate-marquee motion-reduce:animate-none">
-        {row("a")}
-        {row("b")}
+        {["a", "b", "c", "d"].map(row)}
       </div>
+      {/* Edge fades so text dissolves instead of clipping mid-word */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-onyx to-transparent md:w-32"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-onyx to-transparent md:w-32"
+      />
     </div>
   );
 }
