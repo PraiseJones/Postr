@@ -23,6 +23,15 @@ const config: Config = {
         DEFAULT: "8px",
         xl: "12px",
       },
+      keyframes: {
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "none" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.2s ease-out both",
+      },
     },
   },
   plugins: [],

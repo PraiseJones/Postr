@@ -7,13 +7,14 @@ import ConnectToast from "@/components/connect-toast";
 export default async function AccountsPage() {
   const supabase = createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session!.user;
 
   const { data: accounts } = await supabase
     .from("connected_accounts")
     .select("platform, account_name, created_at")
-    .eq("user_id", user!.id);
+    .eq("user_id", user.id);
 
   const byPlatform = new Map(
     (accounts ?? []).map((a) => [a.platform as Platform, a])

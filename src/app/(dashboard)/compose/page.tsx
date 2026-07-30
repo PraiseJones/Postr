@@ -6,13 +6,14 @@ import ComposeForm from "@/components/compose-form";
 export default async function ComposePage() {
   const supabase = createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session!.user;
 
   const { data: accounts } = await supabase
     .from("connected_accounts")
     .select("platform, account_name")
-    .eq("user_id", user!.id);
+    .eq("user_id", user.id);
 
   return (
     <FadeIn className="space-y-6">
