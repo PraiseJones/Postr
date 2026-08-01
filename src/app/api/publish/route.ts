@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Select at least one platform" }, { status: 400 });
   }
   for (const p of platforms) {
-    if (text.length > CHAR_LIMITS[p]) {
+    // X splits long posts into a thread, so its limit isn't a hard stop.
+    if (p !== "x" && text.length > CHAR_LIMITS[p]) {
       return NextResponse.json(
         { error: `Text exceeds the ${CHAR_LIMITS[p]}-character limit for ${p}` },
         { status: 400 }

@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
-import { ImagePlus, X as XIcon, Send } from "lucide-react";
+import { ImagePlus, X as XIcon, Send, ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +15,7 @@ import {
   PLATFORMS,
   type Platform,
 } from "@/lib/platforms/types";
+import { splitIntoThread } from "@/lib/platforms/thread";
 import { cn } from "@/lib/utils";
 import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
@@ -25,9 +26,28 @@ interface PublishResponse {
   results: { platform: Platform; ok: boolean; error?: string }[];
 }
 
-function CharCounter({ platform, length }: { platform: Platform; length: number }) {
+function CharCounter({
+  platform,
+  length,
+  threadParts,
+}: {
+  platform: Platform;
+  length: number;
+  threadParts?: number;
+}) {
   const limit = CHAR_LIMITS[platform];
   const ratio = length / limit;
+
+  // Over the limit on X isn't an error — it becomes a thread.
+  if (platform === "x" && threadParts && threadParts > 1) {
+    return (
+      <span className="flex items-center gap-1.5 text-xs tabular-nums text-primary">
+        <PlatformIcon platform="x" size={14} className="text-inherit" />
+        {threadParts} tweets
+      </span>
+    );
+  }
+
   return (
     <span
       className={cn(
@@ -66,9 +86,14 @@ export default function ComposeForm({
     reset,
   } = useComposeStore();
 
+  // X is excluded: long posts are threaded rather than rejected.
   const overLimit = selectedPlatforms.filter(
-    (p) => text.length > CHAR_LIMITS[p]
+    (p) => p !== "x" && text.length > CHAR_LIMITS[p]
   );
+
+  const threadParts = splitIntoThread(text).length;
+  const showThread =
+    selectedPlatforms.includes("x") && threadParts > 1 && text.trim().length > 0;
   const igWithoutMedia = selectedPlatforms.includes("instagram") && !mediaFile;
   const canPublish =
     selectedPlatforms.length > 0 &&
@@ -180,10 +205,38 @@ export default function ComposeForm({
           <div className="mt-2 flex flex-wrap items-center gap-4">
             {(selectedPlatforms.length > 0 ? selectedPlatforms : PLATFORMS).map(
               (p) => (
-                <CharCounter key={p} platform={p} length={text.length} />
+                <CharCounter
+                  key={p}
+                  platform={p}
+                  length={text.length}
+                  threadParts={threadParts}
+                />
               )
             )}
           </div>
+
+          {/* Thread preview */}
+          {showThread && (
+            <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+              <p className="flex items-center gap-2 text-xs text-primary">
+                <ListOrdered size={14} strokeWidth={1.5} />
+                Too long for one tweet — X will get a thread of {threadParts}
+              </p>
+              <ol className="mt-3 space-y-2">
+                {splitIntoThread(text).map((part, i) => (
+                  <li
+                    key={i}
+                    className="rounded border border-white/10 p-3 text-xs leading-relaxed text-white/55"
+                  >
+                    {part}
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-3 text-xs text-white/40">
+                Other platforms receive the full post as one piece.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Media */}

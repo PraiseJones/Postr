@@ -5,6 +5,7 @@ import {
   PublishResult,
   redirectUri,
 } from "./types";
+import { splitIntoThread } from "./thread";
 
 // X (Twitter) — OAuth 2.0 with PKCE + v2 API.
 // Docs: https://docs.x.com/x-api/fundamentals/authentication
@@ -105,24 +106,52 @@ export const xAdapter: PlatformAdapter = {
   async publish(account, input: PublishInput): Promise<PublishResult> {
     try {
       const accessToken = await refreshToken(account);
-      // v1 posts text (media upload on X requires the separate media
-      // endpoint with OAuth 1.0a or chunked v2 upload — noted in README).
-      const res = await fetch(`${API}/tweets`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text: input.text }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        return {
-          ok: false,
-          error: json.detail || json.title || `X API error (${res.status})`,
-        };
+
+      // Anything over 280 characters is posted as a thread: each part replies
+      // to the previous one. (Media upload on X needs the separate chunked
+      // upload endpoint — noted in the README.)
+      const parts = splitIntoThread(input.text);
+
+      let replyTo: string | undefined;
+      let firstId: string | undefined;
+
+      for (let i = 0; i < parts.length; i++) {
+        // Small gap between posts so a long thread isn't treated as a burst.
+        if (i > 0) await new Promise((r) => setTimeout(r, 400));
+
+        const res = await fetch(`${API}/tweets`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            text: parts[i],
+            ...(replyTo ? { reply: { in_reply_to_tweet_id: replyTo } } : {}),
+          }),
+        });
+        const json = await res.json();
+
+        if (!res.ok) {
+          const reason =
+            json.detail || json.title || `X API error (${res.status})`;
+          if (firstId) {
+            // Part of the thread is live — say so plainly rather than
+            // reporting a clean failure the user can blindly retry.
+            return {
+              ok: false,
+              platformPostId: firstId,
+              error: `Posted ${i} of ${parts.length} parts, then failed: ${reason}. Retrying posts the whole thread again.`,
+            };
+          }
+          return { ok: false, error: reason };
+        }
+
+        replyTo = json.data.id;
+        if (!firstId) firstId = json.data.id;
       }
-      return { ok: true, platformPostId: json.data.id };
+
+      return { ok: true, platformPostId: firstId };
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : "Unknown error" };
     }
