@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import Button from "@/components/ui/button";
 import FadeIn from "@/components/ui/fade-in";
+import GoogleButton from "@/components/google-button";
 
 function LoginForm() {
   const router = useRouter();
@@ -64,7 +65,17 @@ function LoginForm() {
         Compose once. Publish to X, Facebook, Instagram and LinkedIn.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+      <div className="mt-8">
+        <GoogleButton next={searchParams.get("next")} />
+      </div>
+
+      <div className="my-6 flex items-center gap-4">
+        <span className="h-px flex-1 bg-white/10" />
+        <span className="text-xs text-white/40">or use your email</span>
+        <span className="h-px flex-1 bg-white/10" />
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="email" className="mb-2 block text-sm text-white/55">
             Email
