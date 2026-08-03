@@ -94,12 +94,28 @@ export default function ComposeForm({
   const threadParts = splitIntoThread(text).length;
   const showThread =
     selectedPlatforms.includes("x") && threadParts > 1 && text.trim().length > 0;
+
   const igWithoutMedia = selectedPlatforms.includes("instagram") && !mediaFile;
   const canPublish =
     selectedPlatforms.length > 0 &&
     (text.trim().length > 0 || mediaFile) &&
     overLimit.length === 0 &&
     !igWithoutMedia;
+  // Never leave Publish disabled without saying why.
+  const blockedBecause =
+    selectedPlatforms.length === 0
+      ? connectedPlatforms.length === 0
+        ? "Connect an account before you can publish"
+        : "Pick at least one platform above"
+      : !text.trim() && !mediaFile
+        ? "Write something or add an image"
+        : igWithoutMedia
+          ? "Instagram needs an image"
+          : overLimit.length > 0
+            ? `Too long for ${overLimit
+                .map((p) => PLATFORM_LABELS[p])
+                .join(" and ")}`
+            : null;
 
   const publish = useMutation({
     mutationFn: async (): Promise<PublishResponse> => {
@@ -283,7 +299,10 @@ export default function ComposeForm({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 border-t border-white/5 pt-6">
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-white/5 pt-6">
+          {blockedBecause && (
+            <p className="mr-auto text-xs text-warning">{blockedBecause}</p>
+          )}
           <Button
             variant="secondary"
             onClick={reset}
