@@ -8,7 +8,11 @@ export async function GET(
   { params }: { params: { platform: string } }
 ) {
   const { platform } = params;
-  const accountsUrl = new URL("/accounts", process.env.NEXT_PUBLIC_APP_URL);
+  // Derive from the incoming request so a missing NEXT_PUBLIC_APP_URL can't
+  // throw here — this route is where the user lands back from the provider,
+  // and an exception surfaces as a bare 500 with no explanation.
+  const origin = request.nextUrl.origin;
+  const accountsUrl = new URL("/accounts", origin);
 
   if (!isPlatform(platform)) {
     return NextResponse.json({ error: "Unknown platform" }, { status: 404 });
@@ -44,7 +48,10 @@ export async function GET(
   }
 
   try {
-    const account = await adapters[platform].exchangeCode(code, { codeVerifier });
+    const account = await adapters[platform].exchangeCode(code, {
+      codeVerifier,
+      origin,
+    });
 
     // Tokens are written with the service role and never sent to the browser.
     const service = createServiceClient();

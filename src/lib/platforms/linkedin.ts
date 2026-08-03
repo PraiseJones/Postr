@@ -12,25 +12,25 @@ const TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
 const API = "https://api.linkedin.com/v2";
 
 export const linkedinAdapter: PlatformAdapter = {
-  getAuthUrl(state) {
+  getAuthUrl(state, extras) {
     const params = new URLSearchParams({
       response_type: "code",
       client_id: process.env.LINKEDIN_CLIENT_ID!,
-      redirect_uri: redirectUri("linkedin"),
+      redirect_uri: redirectUri("linkedin", extras?.origin),
       state,
       scope: "openid profile w_member_social",
     });
     return `${AUTH_URL}?${params}`;
   },
 
-  async exchangeCode(code) {
+  async exchangeCode(code, extras) {
     const res = await fetch(TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         grant_type: "authorization_code",
         code,
-        redirect_uri: redirectUri("linkedin"),
+        redirect_uri: redirectUri("linkedin", extras?.origin),
         client_id: process.env.LINKEDIN_CLIENT_ID!,
         client_secret: process.env.LINKEDIN_CLIENT_SECRET!,
       }),

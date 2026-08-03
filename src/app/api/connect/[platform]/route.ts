@@ -34,7 +34,20 @@ export async function GET(
       .digest("base64url");
   }
 
-  const authUrl = adapters[platform].getAuthUrl(state, { codeChallenge });
+  // Fall back to this request's own origin when NEXT_PUBLIC_APP_URL is unset.
+  const origin = request.nextUrl.origin;
+
+  let authUrl: string;
+  try {
+    authUrl = adapters[platform].getAuthUrl(state, { codeChallenge, origin });
+  } catch (e) {
+    const url = new URL("/accounts", origin);
+    url.searchParams.set(
+      "error",
+      e instanceof Error ? e.message : "Could not start the connection"
+    );
+    return NextResponse.redirect(url);
+  }
 
   const response = NextResponse.redirect(authUrl);
   const cookieOpts = {

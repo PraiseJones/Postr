@@ -12,23 +12,23 @@ import {
 const GRAPH = "https://graph.facebook.com/v21.0";
 
 export const facebookAdapter: PlatformAdapter = {
-  getAuthUrl(state) {
+  getAuthUrl(state, extras) {
     const params = new URLSearchParams({
       client_id: process.env.META_APP_ID!,
-      redirect_uri: redirectUri("facebook"),
+      redirect_uri: redirectUri("facebook", extras?.origin),
       state,
       scope: "pages_show_list,pages_manage_posts,pages_read_engagement",
     });
     return `https://www.facebook.com/v21.0/dialog/oauth?${params}`;
   },
 
-  async exchangeCode(code) {
+  async exchangeCode(code, extras) {
     const tokenRes = await fetch(
       `${GRAPH}/oauth/access_token?` +
         new URLSearchParams({
           client_id: process.env.META_APP_ID!,
           client_secret: process.env.META_APP_SECRET!,
-          redirect_uri: redirectUri("facebook"),
+          redirect_uri: redirectUri("facebook", extras?.origin),
           code,
         })
     );

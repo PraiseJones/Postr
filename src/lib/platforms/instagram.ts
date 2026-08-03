@@ -12,10 +12,10 @@ import {
 const GRAPH = "https://graph.facebook.com/v21.0";
 
 export const instagramAdapter: PlatformAdapter = {
-  getAuthUrl(state) {
+  getAuthUrl(state, extras) {
     const params = new URLSearchParams({
       client_id: process.env.META_APP_ID!,
-      redirect_uri: redirectUri("instagram"),
+      redirect_uri: redirectUri("instagram", extras?.origin),
       state,
       scope:
         "instagram_basic,instagram_content_publish,pages_show_list,business_management",
@@ -23,13 +23,13 @@ export const instagramAdapter: PlatformAdapter = {
     return `https://www.facebook.com/v21.0/dialog/oauth?${params}`;
   },
 
-  async exchangeCode(code) {
+  async exchangeCode(code, extras) {
     const tokenRes = await fetch(
       `${GRAPH}/oauth/access_token?` +
         new URLSearchParams({
           client_id: process.env.META_APP_ID!,
           client_secret: process.env.META_APP_SECRET!,
-          redirect_uri: redirectUri("instagram"),
+          redirect_uri: redirectUri("instagram", extras?.origin),
           code,
         })
     );

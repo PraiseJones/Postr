@@ -58,7 +58,7 @@ export const xAdapter: PlatformAdapter = {
     const params = new URLSearchParams({
       response_type: "code",
       client_id: process.env.X_CLIENT_ID!,
-      redirect_uri: redirectUri("x"),
+      redirect_uri: redirectUri("x", extras?.origin),
       scope: "tweet.read tweet.write users.read offline.access",
       state,
       code_challenge: extras!.codeChallenge!,
@@ -77,7 +77,7 @@ export const xAdapter: PlatformAdapter = {
       body: new URLSearchParams({
         grant_type: "authorization_code",
         code,
-        redirect_uri: redirectUri("x"),
+        redirect_uri: redirectUri("x", extras?.origin),
         code_verifier: extras!.codeVerifier!,
       }),
     });
