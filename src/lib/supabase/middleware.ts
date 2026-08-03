@@ -14,12 +14,43 @@ const PROTECTED_PREFIXES = [
   "/api/publish",
 ];
 
+function isProtectedPath(pathname: string) {
+  return PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+}
+
 export async function updateSession(request: NextRequest) {
+  // Middleware runs on every request, so anything thrown here takes the whole
+  // site down — including the public landing page. Degrade instead: serve
+  // public pages, and send signed-out-looking traffic on protected paths to
+  // /login rather than returning a 500.
+  try {
+    return await withSession(request);
+  } catch (error) {
+    console.error("[middleware] session check failed:", error);
+    if (isProtectedPath(request.nextUrl.pathname)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next({ request });
+  }
+}
+
+async function withSession(request: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY"
+    );
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -52,9 +83,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-
-  if (!user && isProtected) {
+  if (!user && isProtectedPath(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
