@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { adapters, isPlatform } from "@/lib/platforms";
+import { appOrigin } from "@/lib/app-origin";
 
 // Starts the OAuth dance: sets state (and PKCE verifier for X) in httpOnly
 // cookies, then redirects to the provider.
@@ -34,8 +35,7 @@ export async function GET(
       .digest("base64url");
   }
 
-  // Fall back to this request's own origin when NEXT_PUBLIC_APP_URL is unset.
-  const origin = request.nextUrl.origin;
+  const origin = appOrigin(request);
 
   let authUrl: string;
   try {

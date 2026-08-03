@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { Link2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { PLATFORMS, PLATFORM_LABELS, type Platform } from "@/lib/platforms/types";
@@ -6,12 +7,25 @@ import Card from "@/components/ui/card";
 import Button from "@/components/ui/button";
 import FadeIn from "@/components/ui/fade-in";
 import PlatformIcon from "@/components/platform-icon";
+import { appOriginFromHeaders } from "@/lib/app-origin";
 import { formatDate } from "@/lib/utils";
 
 const API_KEYS = [
-  { name: "X (Twitter)", env: "X_CLIENT_ID / X_CLIENT_SECRET" },
-  { name: "Meta (Facebook + Instagram)", env: "META_APP_ID / META_APP_SECRET" },
-  { name: "LinkedIn", env: "LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET" },
+  {
+    name: "X (Twitter)",
+    env: "X_CLIENT_ID / X_CLIENT_SECRET",
+    callbacks: ["x"],
+  },
+  {
+    name: "Meta (Facebook + Instagram)",
+    env: "META_APP_ID / META_APP_SECRET",
+    callbacks: ["facebook", "instagram"],
+  },
+  {
+    name: "LinkedIn",
+    env: "LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET",
+    callbacks: ["linkedin"],
+  },
 ];
 
 function isConfigured(env: string) {
@@ -38,6 +52,7 @@ export default async function SettingsPage() {
 
   // Platform credentials are app-wide operator config, not user settings.
   // Only the operator sees them, and only when ADMIN_EMAIL is set.
+  const origin = appOriginFromHeaders(headers());
   const adminEmail = process.env.ADMIN_EMAIL;
   const isAdmin =
     Boolean(adminEmail) &&
@@ -124,14 +139,15 @@ export default async function SettingsPage() {
             for setup instructions.
           </p>
           <ul className="mt-4 space-y-3">
-            {API_KEYS.map(({ name, env }) => {
+            {API_KEYS.map(({ name, env, callbacks }) => {
               const ok = isConfigured(env);
               return (
                 <li
                   key={name}
-                  className="flex items-center justify-between border-b border-white/5 pb-3 text-sm last:border-0 last:pb-0"
+                  className="border-b border-white/5 pb-4 text-sm last:border-0 last:pb-0"
                 >
-                  <div>
+                  <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
                     <p>{name}</p>
                     <p className="text-xs text-white/55">{env}</p>
                   </div>
@@ -144,6 +160,20 @@ export default async function SettingsPage() {
                   >
                     {ok ? "Configured" : "Missing"}
                   </span>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-white/40">
+                      Register {callbacks.length > 1 ? "these redirect URIs" : "this redirect URI"}:
+                    </p>
+                    {callbacks.map((slug) => (
+                      <code
+                        key={slug}
+                        className="block overflow-x-auto whitespace-nowrap rounded bg-white/5 px-2 py-1 text-xs text-white/70"
+                      >
+                        {origin}/api/connect/{slug}/callback
+                      </code>
+                    ))}
+                  </div>
                 </li>
               );
             })}

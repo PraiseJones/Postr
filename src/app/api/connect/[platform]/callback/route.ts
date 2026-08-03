@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { adapters, isPlatform } from "@/lib/platforms";
+import { appOrigin } from "@/lib/app-origin";
 
 export async function GET(
   request: NextRequest,
@@ -11,7 +12,7 @@ export async function GET(
   // Derive from the incoming request so a missing NEXT_PUBLIC_APP_URL can't
   // throw here — this route is where the user lands back from the provider,
   // and an exception surfaces as a bare 500 with no explanation.
-  const origin = request.nextUrl.origin;
+  const origin = appOrigin(request);
   const accountsUrl = new URL("/accounts", origin);
 
   if (!isPlatform(platform)) {
